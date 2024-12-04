@@ -17,7 +17,7 @@ Map<int?, Color?> grey = {
 Map<String?, Color?> mannerTemperature = {
   'primary': Color(0xff0000ff),
   'secondary': Color(0xff00bfff),
-  'tertiary': Color(0xff7fff00),
+  'tertiary': Color(0xff6CD900),
   'quaternary': Color(0xff32cd32),
   'quinary': Color(0xffffa500),
   'senary': Color(0xffffa500),
