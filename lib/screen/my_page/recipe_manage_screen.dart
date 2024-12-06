@@ -56,13 +56,18 @@ class _RecipeManageScreenState extends State<RecipeManageScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("레시피를 삭제하시겠습니까?"),
-          titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
           backgroundColor: Colors.white,
-          content: SizedBox(height: 20.0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 40.0),
+              Text("레시피를 삭제하시겠습니까?", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black,),),
+              SizedBox(height: 20.0),
+            ],
+          ),
           actions: [
             TextButton(
               style: ElevatedButton.styleFrom(
