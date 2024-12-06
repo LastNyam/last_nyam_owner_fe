@@ -7,7 +7,7 @@ class UserState with ChangeNotifier {
   String userName = 'test';
   String storeName = 'test';
   Uint8List? profileImage = null;
-  double mannerTemperature = 36.5;
+  double mannerTemperature = 50;
   bool isLogin = true;
 
   void updatePassword(String newPassword) {
@@ -43,5 +43,15 @@ class UserState with ChangeNotifier {
   void updateIsLogin(bool newLogin) {
     isLogin = newLogin;
     notifyListeners();
+  }
+
+  void initState() {
+    password = '';
+    phoneNumber = '';
+    userName = '';
+    storeName = '';
+    profileImage = null;
+    mannerTemperature = 36.5;
+    isLogin = false;
   }
 }
