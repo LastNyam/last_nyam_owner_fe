@@ -214,6 +214,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final userState = Provider.of<UserState>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -240,9 +242,10 @@ class _MyPageScreenState extends State<MyPageScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // 알림창 닫기
-                  print('로그아웃 처리');
+                onPressed: () async {
+                  await _storage.delete(key: 'authToken');
+                  userState.initState();
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: defaultColors['green'],
@@ -265,6 +268,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   void _showWithdrawalDialog(BuildContext context) {
+    final userState = Provider.of<UserState>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -291,9 +296,26 @@ class _MyPageScreenState extends State<MyPageScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // 알림창 닫기
-                  print('탈퇴 처리');
+                onPressed: () async {
+                  try {
+                    final baseUrl = dotenv.env['BASE_URL'];
+                    String? token = await _storage.read(key: 'authToken');
+                    final response = await _dio.delete(
+                      '$baseUrl/auth/signout',
+                      options: Options(
+                        headers: {'Authorization': 'Bearer $token'},
+                      ),
+                    );
+
+                    if (response.statusCode == 200) {
+                      await _storage.delete(key: 'authToken');
+                      userState.initState();
+                    }
+                  } catch (e) {
+                    print('회원 탈퇴 실패: $e');
+                  }
+
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: defaultColors['green'],
