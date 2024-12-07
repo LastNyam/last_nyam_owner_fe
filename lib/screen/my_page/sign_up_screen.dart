@@ -486,11 +486,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _validateForm() {
     setState(() {
-      _isValid = _isPhoneNumberValid &&
-          _isBusinessValid &&
-          _isPasswordValid &&
-          _isConfirmPasswordValid &&
-          _isVerifyValid;
+      // _isValid = _isPhoneNumberValid &&
+      //     _isBusinessValid &&
+      //     _isPasswordValid &&
+      //     _isConfirmPasswordValid &&
+      //     _isVerifyValid;
+      _isValid = true;
     });
   }
 }
