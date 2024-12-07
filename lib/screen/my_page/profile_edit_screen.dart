@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:last_nyam_owner/const/colors.dart';
 import 'package:last_nyam_owner/screen/my_page/address_change_screen.dart';
 import 'package:last_nyam_owner/screen/my_page/business_hour_screen.dart';
+import 'package:last_nyam_owner/screen/my_page/store_number_change_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:last_nyam_owner/component/provider/user_state.dart';
 import 'package:last_nyam_owner/screen/my_page/nickname_change_screen.dart';
@@ -156,6 +157,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 trailing: Icon(Icons.chevron_right,
                     color: defaultColors['lightGreen']),
                 onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StoreNumberChangeScreen(),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -231,7 +238,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (response.statusCode == 200) {
         userState.updateProfileImage(null);
       }
-    } catch(e) {
+    } catch (e) {
       print('기본이미지 적용 실패: $e');
     }
   }
