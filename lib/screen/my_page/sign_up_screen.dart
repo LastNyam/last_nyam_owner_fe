@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:last_nyam_owner/screen/my_page/store_account_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:last_nyam_owner/component/provider/user_state.dart';
 import 'package:last_nyam_owner/const/colors.dart';
@@ -289,23 +290,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               }
 
               String password = _passwordController.text;
-              bool acceptMarketing = false;
-
-              try {
-                final baseUrl = dotenv.env['BASE_URL'];
-                final response = await _dio.post('$baseUrl/auth/signup', data: {
-                  'password': password,
-                  'phoneNumber': _savePhoneNumber,
-                  'businessNumber': _saveBusiness,
-                });
-
-                if (response.statusCode == 200) {
-                  print('회원가입 완료');
-                  Navigator.pop(context);
-                }
-              } catch (e) {
-                print('회원가입 실패: $e');
-              }
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StoreAccountScreen(
+                    phoneNumber: _savePhoneNumber,
+                    password: password,
+                    businessNumber: _saveBusiness,
+                  ),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: _isValid
@@ -317,8 +311,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             child: Text(
-              '회원가입',
-              style: TextStyle(fontSize: 16, color: Colors.white),
+              '다음',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -338,7 +335,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         SizedBox(height: 8),
         TextField(
@@ -426,9 +426,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _validateBusiness() {
     setState(() {
-      String Business = _businessController.text;
+      String business = _businessController.text;
 
-      if (Business.length == 10) {
+      if (business.length == 10) {
         _isBusinessValid = true;
         _BusinessError = null; // 오류 메시지 제거
       } else {

@@ -5,10 +5,20 @@ import 'package:geocoding/geocoding.dart';
 import 'package:dio/dio.dart';
 import 'package:last_nyam_owner/const/colors.dart';
 
-class AddressChangeScreen extends StatelessWidget {
+class AddressChangeScreen extends StatefulWidget {
+  const AddressChangeScreen({Key? key}) : super(key: key);
+
+  @override
+  _AddressChangeScreenState createState() => _AddressChangeScreenState();
+}
+
+class _AddressChangeScreenState extends State<AddressChangeScreen> {
   final TextEditingController _addressController = TextEditingController();
   final Dio _dio = Dio(); // Dio 인스턴스 생성
   final _storage = const FlutterSecureStorage();
+
+  bool _isAddressValid = false;
+  String? _addressError;
 
   Future<void> _getCoordinatesAndSendRequest(BuildContext context) async {
     String address = _addressController.text;
@@ -32,14 +42,17 @@ class AddressChangeScreen extends StatelessWidget {
         // 서버로 데이터 전송
         await _sendCoordinatesToServer(context, address, latitude, longitude);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("주소를 찾을 수 없습니다.")),
-        );
+        setState(() {
+          _isAddressValid = false;
+          _addressError = '주소를 찾을 수 없습니다.';
+        });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("주소를 변환하는 데 실패했습니다: $e")),
-      );
+      print('주소 찾기 실패: $e');
+      setState(() {
+        _isAddressValid = false;
+        _addressError = '주소를 찾을 수 없습니다.';
+      });
     }
   }
 
@@ -62,9 +75,7 @@ class AddressChangeScreen extends StatelessWidget {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("좌표가 성공적으로 전송되었습니다.")),
-        );
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("서버 응답 오류: ${response.statusCode}")),
@@ -114,15 +125,28 @@ class AddressChangeScreen extends StatelessWidget {
               TextField(
                 controller: _addressController,
                 decoration: InputDecoration(
-                  hintText: "주소를 입력하세요",
+                  hintText: "도로명 주소를 입력하세요",
                   filled: true,
                   fillColor: Colors.grey[200],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: _isAddressValid ? Colors.transparent : defaultColors['green']!,
+                      width: 2.0,
+                    ),
                   ),
                 ),
               ),
+              if (!_isAddressValid) ...[
+                SizedBox(height: 8.0),
+                Text(
+                  _addressError!,
+                  style: TextStyle(
+                    color: defaultColors['green'],
+                    fontSize: 14,
+                  ),
+                ),
+              ],
               Spacer(), // 하단에 버튼을 배치하기 위해 공간 사용
               SizedBox(
                 width: double.infinity,
