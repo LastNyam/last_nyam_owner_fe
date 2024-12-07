@@ -1,12 +1,14 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 class UserState with ChangeNotifier {
-  String password = 'testest';
-  String phoneNumber = '010-1111-1111';
-  String userName = '컴공피주먹';
-  File? profileImage = null;
-  int orderCount = 0;
+  String password = '';
+  String phoneNumber = '';
+  String userName = '';
+  String storeName = '';
+  Uint8List? profileImage = null;
+  double mannerTemperature = 0;
+  bool isLogin = false;
 
   void updatePassword(String newPassword) {
     password = newPassword;
@@ -23,13 +25,33 @@ class UserState with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProfileImage(File? newImage) {
+  void updateStoreName(String newStoreName) {
+    storeName = newStoreName;
+    notifyListeners();
+  }
+
+  void updateProfileImage(Uint8List? newImage) {
     profileImage = newImage;
     notifyListeners();
   }
 
-  void updateOrderCount(int newCount) {
-    orderCount = newCount;
+  void updateMannerTemperature(double newMannerTemperature) {
+    mannerTemperature = newMannerTemperature;
     notifyListeners();
+  }
+
+  void updateIsLogin(bool newLogin) {
+    isLogin = newLogin;
+    notifyListeners();
+  }
+
+  void initState() {
+    password = '';
+    phoneNumber = '';
+    userName = '';
+    storeName = '';
+    profileImage = null;
+    mannerTemperature = 0;
+    isLogin = false;
   }
 }
