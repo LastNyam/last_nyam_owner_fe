@@ -8,7 +8,7 @@ class UserState with ChangeNotifier {
   String storeName = '';
   Uint8List? profileImage = null;
   double mannerTemperature = 0;
-  bool isLogin = false;
+  bool isLogin = true;
 
   void updatePassword(String newPassword) {
     password = newPassword;

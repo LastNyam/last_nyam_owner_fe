@@ -324,11 +324,14 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   minimumSize: Size(double.infinity, 50),
                 ),
-                child: Text('탈퇴',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: defaultColors['white'],
-                        fontWeight: FontWeight.bold)),
+                child: Text(
+                  '탈퇴',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: defaultColors['white'],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
