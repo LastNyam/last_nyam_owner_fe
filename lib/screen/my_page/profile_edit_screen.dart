@@ -165,22 +165,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   );
                 },
               ),
-              ListTile(
-                title: Text(
-                  '영업 시간 변경',
-                  style: TextStyle(fontSize: 16),
-                ),
-                trailing: Icon(Icons.chevron_right,
-                    color: defaultColors['lightGreen']),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BusinessHoursScreen(),
-                    ),
-                  );
-                },
-              ),
             ],
           ),
         ),

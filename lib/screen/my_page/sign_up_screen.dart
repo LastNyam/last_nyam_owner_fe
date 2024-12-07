@@ -288,15 +288,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               if (!_isValid) {
                 return;
               }
-
+              String phoneNumber = _phoneNumberController.text;
               String password = _passwordController.text;
+              String business = _businessController.text;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (context) => StoreAccountScreen(
-                    phoneNumber: _savePhoneNumber,
+                    phoneNumber: phoneNumber,
                     password: password,
-                    businessNumber: _saveBusiness,
+                    businessNumber: business,
                   ),
                 ),
               );

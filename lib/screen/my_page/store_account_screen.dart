@@ -114,115 +114,138 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
         ),
         centerTitle: true,
       ),
-      body: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildPasswordField(
-                controller: _storeNameController,
-                label: "가게 상호명을 입력해주세요.",
-                type: 'storeName',
-                hintText: "",
-                errorText: _storeNameError,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
               ),
-              SizedBox(height: 20,),
-              _buildPasswordField(
-                controller: _callNumberController,
-                label: "가게 번호를 입력해주세요.",
-                type: 'callNumber',
-                hintText: "123-4560-7890",
-                errorText: _callNumberError,
-              ),
-              SizedBox(height: 20,),
-              _buildPasswordField(
-                controller: _addressController,
-                label: "가게 주소를 입력해주세요.",
-                type: 'address',
-                hintText: "도로명 주소 입력",
-                errorText: _addressError,
-              ),
-              Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_isValid) {
-                      String storeName = _storeNameController.text;
-                      String callNumber = _callNumberController.text;
-                      String address = _addressController.text;
-                      _getCoordinatesAndSendRequest(context);
+              child: IntrinsicHeight(
+                child: Container(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPasswordField(
+                          controller: _storeNameController,
+                          label: "가게 상호명을 입력해주세요.",
+                          type: 'storeName',
+                          hintText: "",
+                          errorText: _storeNameError,
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        _buildPasswordField(
+                          controller: _callNumberController,
+                          label: "가게 번호를 입력해주세요.",
+                          type: 'callNumber',
+                          hintText: "054-123-4567",
+                          errorText: _callNumberError,
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        _buildPasswordField(
+                          controller: _addressController,
+                          label: "가게 주소를 입력해주세요.",
+                          type: 'address',
+                          hintText: "도로명 주소 입력",
+                          errorText: _addressError,
+                        ),
+                        Spacer(),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (_isValid) {
+                                String storeName = _storeNameController.text;
+                                String callNumber = _callNumberController.text;
+                                String address = _addressController.text;
+                                await _getCoordinatesAndSendRequest(context);
 
-                      try {
-                        final baseUrl = dotenv.env['BASE_URL'];
-                        String? token = await _storage.read(key: 'authToken');
+                                try {
+                                  final baseUrl = dotenv.env['BASE_URL'];
+                                  String token = '';
 
-                        try {
-                          final response = await _dio.post(
-                            '$baseUrl/auth/signup',
-                            data: {
-                              'password': _password,
-                              'phoneNumber': _phoneNumber,
-                              'businessNumber': _businessNumber,
+                                  try {
+                                    final response = await _dio.post(
+                                      '$baseUrl/auth/signup',
+                                      data: {
+                                        'password': _password,
+                                        'phoneNumber': _phoneNumber,
+                                        'businessNumber': _businessNumber,
+                                      },
+                                    );
+
+                                    if (response.statusCode == 200) {
+                                      print('회원가입 완료');
+                                      token =
+                                          response.data['data']['accessToken'];
+                                    }
+                                  } on DioError catch (e) {
+                                    print('회원가입 실패: ${e.response?.data}');
+                                  }
+
+                                  final response = await _dio.post(
+                                    '$baseUrl/store',
+                                    data: {
+                                      'storeName': storeName,
+                                      'businessNumber': _businessNumber,
+                                      'storeImage': null,
+                                      'callNumber': callNumber,
+                                      'address': address,
+                                      'posX': posX,
+                                      'posY': posY,
+                                    },
+                                    options: Options(
+                                      headers: {
+                                        'Authorization': 'Bearer ${token}'
+                                      },
+                                    ),
+                                  );
+
+                                  if (response.statusCode == 200) {
+                                    Navigator.pop(context); // 변경 후 이전 화면으로 이동
+                                  }
+                                } on DioError catch (e) {
+                                  print('가게 등록 실패: ${e.response?.data}');
+                                }
+                              }
                             },
-                          );
-
-                          if (response.statusCode == 200) {
-                            print('회원가입 완료');
-                            Navigator.pop(context);
-                          }
-                        } catch (e) {
-                          print('회원가입 실패: $e');
-                        }
-
-                        final response = await _dio.post(
-                          '$baseUrl/store',
-                          data: {
-                            'storeName': storeName,
-                            'businessNumber': _businessNumber,
-                            'storeImage': null,
-                            'callNumber': callNumber,
-                            'address': address,
-                            'posX': posX,
-                            'posY': posY,
-                          },
-                          options: Options(
-                            headers: {'Authorization': 'Bearer $token'},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isValid
+                                  ? defaultColors['green']
+                                  : defaultColors['lightGreen'], // 버튼 색상
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    5.0), // Border radius 설정
+                              ),
+                            ),
+                            child: Text(
+                              '회원가입',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        );
-
-                        if (response.statusCode == 200) {
-                          Navigator.pop(context); // 변경 후 이전 화면으로 이동
-                        }
-                      } catch (e) {
-                        print('가게 등록 실패: $e');
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isValid
-                        ? defaultColors['green']
-                        : defaultColors['lightGreen'], // 버튼 색상
-                    padding: EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(5.0), // Border radius 설정
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Text(
-                    '회원가입',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
