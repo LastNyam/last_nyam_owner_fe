@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 
 class UserState with ChangeNotifier {
-  String password = 'testest';
-  String phoneNumber = '010-1234-5678';
-  String userName = 'test';
-  String storeName = 'test';
+  String password = '';
+  String phoneNumber = '';
+  String userName = '';
+  String storeName = '';
   Uint8List? profileImage = null;
-  double mannerTemperature = 50;
-  bool isLogin = true;
+  double mannerTemperature = 0;
+  bool isLogin = false;
 
   void updatePassword(String newPassword) {
     password = newPassword;
@@ -51,7 +51,7 @@ class UserState with ChangeNotifier {
     userName = '';
     storeName = '';
     profileImage = null;
-    mannerTemperature = 36.5;
+    mannerTemperature = 0;
     isLogin = false;
   }
 }

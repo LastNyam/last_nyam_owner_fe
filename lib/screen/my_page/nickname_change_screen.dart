@@ -72,7 +72,7 @@ class _NicknameChangeScreenState extends State<NicknameChangeScreen> {
                   filled: true,
                   // 배경색 활성화
                   fillColor: defaultColors['white'],
-                  hintText: '닉네임을 입력하세요',
+                  hintText: '상호명을 입력하세요',
                   hintStyle: TextStyle(color: Colors.grey),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
@@ -108,14 +108,14 @@ class _NicknameChangeScreenState extends State<NicknameChangeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    String newNickname = _nicknameController.text.trim();
+                    String newNickname = _nicknameController.text;
                     if (newNickname.isNotEmpty && _isValid) {
                       try {
                         final baseUrl = dotenv.env['BASE_URL'];
                         String? token = await _storage.read(key: 'authToken');
                         final response = await _dio.patch(
                           '$baseUrl/store/name',
-                          data: {'nickname': newNickname},
+                          data: {'storeName': newNickname},
                           options: Options(
                             headers: {'Authorization': 'Bearer $token'},
                           ),
@@ -123,11 +123,11 @@ class _NicknameChangeScreenState extends State<NicknameChangeScreen> {
 
                         if (response.statusCode == 200) {
                           userState.updateUserName(newNickname);
-                          print('닉네임 변경 완료: $newNickname');
+                          print('상호명 변경 완료: $newNickname');
                           Navigator.pop(context); // 변경 후 이전 화면으로 이동
                         }
                       } catch (e) {
-                        print('닉네임 변경 실패: $e');
+                        print('상호명 변경 실패: $e');
                       }
                     }
                   },

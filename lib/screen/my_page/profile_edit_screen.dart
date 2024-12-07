@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:last_nyam_owner/const/colors.dart';
+import 'package:last_nyam_owner/screen/my_page/address_change_screen.dart';
 import 'package:last_nyam_owner/screen/my_page/business_hour_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:last_nyam_owner/component/provider/user_state.dart';
@@ -142,8 +143,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => NicknameChangeScreen(
-                          currentNickname: userState.userName),
+                      builder: (context) => AddressChangeScreen(),
                     ),
                   );
                 },

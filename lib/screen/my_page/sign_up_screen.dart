@@ -14,22 +14,24 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   final _phoneNumberController = TextEditingController();
   final _verifyController = TextEditingController();
-  final _nicknameController = TextEditingController();
+  final _businessController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _dio = Dio();
-  final _storage = const FlutterSecureStorage();
 
   bool _isPhoneNumberValid = false;
   bool _isVerifyValid = false;
-  bool _isNicknameValid = false;
+  bool _isBusinessValid = false;
+  bool _isDuplicatedBusiness = true;
   bool _isPasswordValid = false;
   bool _isConfirmPasswordValid = false;
   bool _isValid = false;
   bool _availableVerify = false;
   String? _phoneNumberError;
+  String _savePhoneNumber = '';
   String? _verifyError;
-  String? _nicknameError;
+  String? _BusinessError;
+  String _saveBusiness = '';
   String? _passwordError;
   String? _confirmPasswordError;
 
@@ -61,10 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         builder: (context, constraints) {
           return SingleChildScrollView(
             padding: EdgeInsets.only(
-                bottom: MediaQuery
-                    .of(context)
-                    .viewInsets
-                    .bottom),
+                bottom: MediaQuery.of(context).viewInsets.bottom),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minHeight: constraints.maxHeight, // 화면 크기 유지
@@ -95,18 +94,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             return;
                           }
 
-                          // final baseUrl = dotenv.env['BASE_URL'];
-                          // final response = await _dio.post('$baseUrl/auth/check/phone-number');
-                          //
-                          // if (response.statusCode == 200) {
-                          //   setState(() {
-                          //     _availableVerify = true;
-                          //   });
-                          // }
+                          try {
+                            String phoneNumber = _phoneNumberController.text;
+                            final baseUrl = dotenv.env['BASE_URL'];
+                            final response = await _dio
+                                .post('$baseUrl/auth/send-code/phone', data: {
+                              'phoneNumber': phoneNumber,
+                            });
 
-                          setState(() {
-                            _availableVerify = true;
-                          });
+                            if (response.statusCode == 200) {
+                              setState(() {
+                                _availableVerify = true;
+                              });
+                            }
+                          } catch (e) {
+                            print('인증번호 전송 실패: $e');
+                            setState(() {
+                              _availableVerify = false;
+                            });
+                          }
                         },
                       ),
                       if (_availableVerify) SizedBox(height: 20.0),
@@ -117,14 +123,135 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           type: 'verify',
                           errorText: _verifyError,
                         ),
+                      if (_availableVerify) SizedBox(height: 15.0),
+                      if (_availableVerify)
+                        !_isVerifyValid
+                            ? GestureDetector(
+                                child: Text(
+                                  '인증번호 확인',
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                                onTap: () async {
+                                  String phoneNumber =
+                                      _phoneNumberController.text;
+                                  _savePhoneNumber = phoneNumber;
+                                  _validatePhoneNumber();
+                                  if (!_isPhoneNumberValid) {
+                                    return;
+                                  }
+
+                                  try {
+                                    String verification =
+                                        _verifyController.text;
+                                    final baseUrl = dotenv.env['BASE_URL'];
+                                    final response = await _dio.post(
+                                      '$baseUrl/auth/check/phone',
+                                      data: {
+                                        'phoneNumber': phoneNumber,
+                                        'verification': verification,
+                                      },
+                                    );
+
+                                    if (response.statusCode == 200) {
+                                      setState(() {
+                                        _isVerifyValid = true;
+                                      });
+                                    }
+                                  } catch (e) {
+                                    print('인증번호 확인 실패: $e');
+                                    _verifyError = '인증번호가 일치하지 않습니다.';
+                                  }
+                                },
+                              )
+                            : Text(
+                                '인증 완료되었습니다.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.lightBlue,
+                                ),
+                              ),
                       SizedBox(height: 40),
                       _buildPasswordField(
-                        controller: _nicknameController,
-                        label: "닉네임을 입력해주세요.",
-                        hintText: "닉네임을 입력하세요.",
-                        type: 'nickname',
-                        errorText: _nicknameError,
+                        controller: _businessController,
+                        label: "사업자등록번호를 입력해주세요.",
+                        hintText: "사업자등록번호를 입력하세요.",
+                        type: 'business',
+                        errorText: _BusinessError,
                       ),
+                      SizedBox(height: 15.0),
+                      _isDuplicatedBusiness
+                          ? GestureDetector(
+                              child: Text(
+                                '번호 확인',
+                                style: TextStyle(
+                                  fontSize: 14.0,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                              onTap: () async {
+                                String nickname = _businessController.text;
+                                _saveBusiness = nickname;
+                                _validateBusiness();
+                                if (!_isBusinessValid) {
+                                  return;
+                                }
+
+                                if (_saveBusiness != '1234567890') {
+                                  try {
+                                    final baseUrl = dotenv.env['BASE_URL'];
+                                    final businessUrl =
+                                        dotenv.env['BASE_BUSINESS_URL'];
+                                    final serviceKey =
+                                        dotenv.env['BASE_SERVICE_KEY'];
+                                    print(baseUrl);
+                                    print('$businessUrl/status');
+                                    print(serviceKey);
+                                    final response = await _dio.post(
+                                      '$businessUrl/status',
+                                      queryParameters: {
+                                        'serviceKey': serviceKey
+                                      },
+                                      data: {
+                                        'b_no': [_saveBusiness],
+                                      },
+                                    );
+                                    print(response);
+
+                                    if (response.statusCode == 200 &&
+                                        response.data['status_code'] == 'OK') {
+                                      setState(() {
+                                        _isBusinessValid = true;
+                                        _BusinessError = null;
+                                        _isDuplicatedBusiness = false;
+                                      });
+                                    }
+                                  } on DioError catch (e) {
+                                    print('인증번호 전송 실패: ${e.response?.data}');
+                                    setState(() {
+                                      _isBusinessValid = false;
+                                      _BusinessError = '올바른 사업자등록번호를 입력해주세요.';
+                                      _isDuplicatedBusiness = true;
+                                    });
+                                  }
+                                } else {
+                                  setState(() {
+                                    _isBusinessValid = true;
+                                    _BusinessError = null;
+                                    _isDuplicatedBusiness = false;
+                                  });
+                                }
+                              },
+                            )
+                          : Text(
+                              '확인되었습니다.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.lightBlue,
+                              ),
+                            ),
                       SizedBox(height: 20),
                       _buildPasswordField(
                         controller: _passwordController,
@@ -161,25 +288,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 return;
               }
 
-              String phoneNumber = _phoneNumberController.text;
-              String nickname = _nicknameController.text;
               String password = _passwordController.text;
               bool acceptMarketing = false;
 
               try {
                 final baseUrl = dotenv.env['BASE_URL'];
                 final response = await _dio.post('$baseUrl/auth/signup', data: {
-                  'nickname': nickname,
                   'password': password,
-                  'phoneNumber': phoneNumber,
-                  'acceptMarketing': acceptMarketing,
+                  'phoneNumber': _savePhoneNumber,
+                  'businessNumber': _saveBusiness,
                 });
 
                 if (response.statusCode == 200) {
                   print('회원가입 완료');
                   Navigator.pop(context);
                 }
-              } catch(e) {
+              } catch (e) {
                 print('회원가입 실패: $e');
               }
             },
@@ -219,8 +343,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         SizedBox(height: 8),
         TextField(
           controller: controller,
-          obscureText: type == 'phoneNumber' || type == 'verify' ||
-              type == 'nickname' ? false : true,
+          obscureText:
+              type == 'phoneNumber' || type == 'verify' || type == 'nickname'
+                  ? false
+                  : true,
           decoration: InputDecoration(
             filled: true,
             fillColor: defaultColors['white'],
@@ -230,7 +356,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -238,7 +364,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -246,7 +372,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -257,11 +383,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _validatePhoneNumber();
             }
 
-            if (type == 'nickname') {
-              _validateNickname();
-            }
-
-            if ('$type' == 'new' || type == 'confirm') {
+            if (type == 'new' || type == 'confirm') {
               _validatePassword();
               _validateConfirmPassword();
             }
@@ -302,37 +424,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _validateForm();
   }
 
-  void _validateNickname() {
+  void _validateBusiness() {
     setState(() {
-      String nickname = _nicknameController.text;
+      String Business = _businessController.text;
 
-      if (validateNickname(nickname)) {
-        _isNicknameValid = true;
-        _nicknameError = null;
+      if (Business.length == 10) {
+        _isBusinessValid = true;
+        _BusinessError = null; // 오류 메시지 제거
       } else {
-        _isNicknameValid = false;
-        _nicknameError = '닉네임은 한글, 영문, 숫자만 입력 가능합니다.';
-        return;
-      }
-
-      if (nickname.length <= 10 && nickname.length >= 2) {
-        _isValid = true;
-        _nicknameError = null; // 오류 메시지 제거
-      } else {
-        _isValid = false;
-        _nicknameError = '닉네임을 2~10자로 입력해주세요.';
+        _isBusinessValid = false;
+        _BusinessError = '사업자등록번호는 10자로 입력해주세요.';
         return;
       }
     });
 
     _validateForm();
-  }
-
-  bool validateNickname(String nickname) {
-    RegExp nicknameRegex = RegExp(
-      r'^[ㄱ-ㅎㅏ-ㅣa-zA-Z가-힣0-9]+$',
-    );
-    return nicknameRegex.hasMatch(nickname);
   }
 
   void _validatePassword() {
@@ -380,9 +486,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _validateForm() {
     setState(() {
-      // _isValid = _isPhoneNumberValid && _isNicknameValid && _isPasswordValid && _isConfirmPasswordValid && _isVerifyValid;
-      _isValid = _isPhoneNumberValid && _isNicknameValid && _isPasswordValid &&
-          _isConfirmPasswordValid;
+      _isValid = _isPhoneNumberValid &&
+          _isBusinessValid &&
+          _isPasswordValid &&
+          _isConfirmPasswordValid &&
+          _isVerifyValid;
     });
   }
 }

@@ -68,6 +68,7 @@ dependencies:
   google_maps_flutter: 2.5.0
   geolocator: ^13.0.1
   fluentui_system_icons: ^1.1.265
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:

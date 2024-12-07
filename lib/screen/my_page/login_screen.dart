@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
               errorText,
-              style: TextStyle(color: defaultColors['green'], fontSize: 14),
+              style: TextStyle(color: defaultColors['green'], fontSize: 12),
             ),
           ),
       ],
@@ -216,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
         },
       );
 
-      print(response.data['data']);
+      print('로그인 성공: ${response.data['data']}');
 
       if (response.statusCode == 200 &&
           response.data['data']['token'] != null) {
@@ -251,9 +251,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       print('로그인 실패: ${e}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인 실패. 다시 시도해주세요.')),
-      );
+      setState(() {
+        _passwordError = '계정이 존재하지 않거나, 비밀번호가 일치하지 않습니다.';
+      });
     }
   }
 
@@ -278,22 +278,6 @@ class _LoginScreenState extends State<LoginScreen> {
       r'^01[0-9]{1}-[0-9]{3,4}-[0-9]{4}$',
     );
     return phoneNumberRegex.hasMatch(phoneNumber);
-  }
-
-  void _validatePassword() {
-    setState(() {
-      String password = _passwordController.text;
-
-      if (password == 'dswvgw1234') {
-        _isPasswordValid = true;
-        _passwordError = null;
-      } else {
-        _isPasswordValid = false;
-        _passwordError = '비밀번호가 일치하지 않습니다.';
-      }
-    });
-
-    _validateForm();
   }
 
   void _validateForm() {
