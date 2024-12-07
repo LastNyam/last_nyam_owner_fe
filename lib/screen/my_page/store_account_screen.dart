@@ -12,12 +12,12 @@ class StoreAccountScreen extends StatefulWidget {
   final String password;
   final String businessNumber;
 
-  const StoreAccountScreen(
-      {Key? key,
-      required this.phoneNumber,
-      required this.password,
-      required this.businessNumber})
-      : super(key: key);
+  const StoreAccountScreen({
+    Key? key,
+    required this.phoneNumber,
+    required this.password,
+    required this.businessNumber,
+  }) : super(key: key);
 
   @override
   _StoreAccountScreenState createState() => _StoreAccountScreenState();
@@ -27,11 +27,11 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
   late String _businessNumber;
   late String _password;
   late String _phoneNumber;
-  late String posX;
-  late String posY;
-  late TextEditingController _storeNameController;
-  late TextEditingController _callNumberController;
-  late TextEditingController _addressController;
+  String? posX;
+  String? posY;
+  final _storeNameController = TextEditingController();
+  final _callNumberController = TextEditingController();
+  final _addressController = TextEditingController();
 
   bool _isStoreNameValid = false;
   bool _isCallNumberValid = false;
@@ -40,6 +40,8 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
   String? _storeNameError;
   String? _callNumberError;
   String? _addressError;
+  final _dio = Dio();
+  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -49,11 +51,48 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
     _phoneNumber = widget.phoneNumber;
   }
 
+  Future<void> _getCoordinatesAndSendRequest(BuildContext context) async {
+    String address = _addressController.text;
+
+    if (address.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("주소를 입력해주세요.")),
+      );
+      return;
+    }
+
+    try {
+      // 주소 -> 위도/경도 변환
+      List<Location> locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        String latitude = locations.first.latitude.toString();
+        String longitude = locations.first.longitude.toString();
+        print('lat: $latitude');
+        print('lon: $longitude');
+
+        // 서버로 데이터 전송
+        setState(() {
+          posX = latitude;
+          posY = longitude;
+        });
+      } else {
+        setState(() {
+          _isAddressValid = false;
+          _addressError = '주소를 찾을 수 없습니다.';
+        });
+      }
+    } catch (e) {
+      print('주소 찾기 실패: $e');
+      setState(() {
+        _isAddressValid = false;
+        _addressError = '주소를 찾을 수 없습니다.';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userState = Provider.of<UserState>(context);
-    final _dio = Dio();
-    final _storage = const FlutterSecureStorage();
 
     return Scaffold(
       appBar: AppBar(
@@ -89,13 +128,15 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
                 hintText: "",
                 errorText: _storeNameError,
               ),
+              SizedBox(height: 20,),
               _buildPasswordField(
                 controller: _callNumberController,
                 label: "가게 번호를 입력해주세요.",
                 type: 'callNumber',
-                hintText: "",
+                hintText: "123-4560-7890",
                 errorText: _callNumberError,
               ),
+              SizedBox(height: 20,),
               _buildPasswordField(
                 controller: _addressController,
                 label: "가게 주소를 입력해주세요.",
@@ -112,32 +153,7 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
                       String storeName = _storeNameController.text;
                       String callNumber = _callNumberController.text;
                       String address = _addressController.text;
-                      try {
-                        // 주소 -> 위도/경도 변환
-                        List<Location> locations =
-                            await locationFromAddress(address);
-                        if (locations.isNotEmpty) {
-                          String latitude = locations.first.latitude.toString();
-                          String longitude =
-                              locations.first.longitude.toString();
-                          print('lat: $latitude');
-                          print('lon: $longitude');
-
-                          // 서버로 데이터 전송
-                          setState(() {});
-                        } else {
-                          setState(() {
-                            _isAddressValid = false;
-                            _addressError = '주소를 찾을 수 없습니다.';
-                          });
-                        }
-                      } catch (e) {
-                        print('주소 찾기 실패: $e');
-                        setState(() {
-                          _isAddressValid = false;
-                          _addressError = '주소를 찾을 수 없습니다.';
-                        });
-                      }
+                      _getCoordinatesAndSendRequest(context);
 
                       try {
                         final baseUrl = dotenv.env['BASE_URL'];
@@ -169,6 +185,8 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
                             'storeImage': null,
                             'callNumber': callNumber,
                             'address': address,
+                            'posX': posX,
+                            'posY': posY,
                           },
                           options: Options(
                             headers: {'Authorization': 'Bearer $token'},
@@ -268,6 +286,8 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
             if (type == 'storeName') {
               _validateStoreName();
             }
+
+            _validateForm();
           },
         ),
         if (errorText != null)
@@ -321,7 +341,7 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
 
   void _validateForm() {
     setState(() {
-      _isValid = _isStoreNameValid && _isCallNumberValid && _isAddressValid;
+      _isValid = _isStoreNameValid && _isCallNumberValid;
     });
   }
 }
