@@ -102,15 +102,13 @@ class _SoldOutScreenState extends State<SoldOutScreen> {
               });
             },
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              decoration: BoxDecoration(
-                border: isSelected
-                    ? Border.all(
-                    color: const Color(0xFF417C4E), width: 2)
-                    : null,
-                borderRadius: BorderRadius.circular(10),
+              child: ClipRRect(
+                child: ContentCard(
+                  product: product,
+                  isSelected: isSelected,
+                  // isSelected 전달
+                ),
               ),
-              child: ContentCard(product: product),
             ),
           );
         },

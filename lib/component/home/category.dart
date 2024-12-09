@@ -16,44 +16,42 @@ class _CategoryState extends State<Category> {
 
   @override
   Widget build(BuildContext context) {
-    // 카테고리 버튼의 높이
-    double widgetHeight = MediaQuery.of(context).size.height * 0.1;
-
     return Container(
-      height: widgetHeight,
-      alignment: Alignment.center,
-      child: Wrap(
-        alignment: WrapAlignment.center, // 중앙 정렬
-        spacing: 10.0, // 버튼 간의 가로 간격
-        runSpacing: 10.0, // 줄 간의 세로 간격
+      height: 35, // 카테고리 버튼의 높이
+      alignment: Alignment.centerLeft, // 왼쪽 정렬
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
         children: categories.map((category) {
           bool isSelected = category.type == selectedType; // 선택된 상태 확인
 
-          return ElevatedButton(
-            onPressed: () {
-              setState(() {
-                selectedType = category.type; // 선택된 카테고리 타입 설정
-              });
-              widget.onCategorySelected(selectedType); // 선택된 카테고리 콜백 호출
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isSelected
-                  ? defaultColors['green'] // 선택된 버튼 색상
-                  : defaultColors['white'], // 비선택 버튼 색상
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+          return Padding(
+            padding: const EdgeInsets.only(right: 10.0), // 버튼 간격 조정
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  selectedType = category.type; // 선택된 카테고리 타입 설정
+                });
+                widget.onCategorySelected(selectedType); // 선택된 카테고리 콜백 호출
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSelected
+                    ? Color(0xff417c4e) // 선택된 버튼 색상
+                    : Color(0xfffafafa), // 비선택 버튼 색상
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 0,
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16),
               ),
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: Text(
-              category.text,
-              style: TextStyle(
-                color: isSelected
-                    ? defaultColors['pureWhite'] // 선택된 텍스트 색상
-                    : defaultColors['lightGreen'], // 비선택 텍스트 색상
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              child: Text(
+                category.text,
+                style: TextStyle(
+                    color: isSelected
+                        ? Color(0xfffafafa) // 선택된 텍스트 색상
+                        : Color(0xffb9c6bc), // 비선택 텍스트 색상
+                    fontSize: 15
+                ),
               ),
             ),
           );
