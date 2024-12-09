@@ -4,6 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:last_nyam_owner/const/colors.dart';
 import 'package:last_nyam_owner/screen/loading.dart';
+import 'package:provider/provider.dart';
+
+import '../../component/provider/user_state.dart';
 
 class ReviewListScreen extends StatefulWidget {
   @override
@@ -100,6 +103,8 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userState = Provider.of<UserState>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -120,64 +125,73 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
           },
         ),
       ),
-      body: _isLoading
-          ? LoadingScreen()
-          : Container(
-              color: Colors.white,
-              child: ListView.separated(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-                itemCount: reviewList.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: Color(0xfff5f5f5),
-                ),
-                itemBuilder: (context, index) {
-                  final review = reviewList[index];
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 리뷰 제목
-                        Text(
-                          review['userNickname'],
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-
-                        // 평점 (별표 표시)
-                        Row(
+      body: !userState.isLogin
+          ? Center(
+              child: Text(
+                '로그인 후 이용가능합니다.',
+                style:
+                    TextStyle(color: defaultColors['lightGreen'], fontSize: 18),
+              ),
+            )
+          : _isLoading
+              ? LoadingScreen()
+              : Container(
+                  color: Colors.white,
+                  child: ListView.separated(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                    itemCount: reviewList.length,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      color: Color(0xfff5f5f5),
+                    ),
+                    itemBuilder: (context, index) {
+                      final review = reviewList[index];
+                      return Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            for (int i = 1; i <= 5; i++)
-                              Icon(
-                                Icons.star,
-                                color: i <= review['rating']
-                                    ? defaultColors['green']
-                                    : defaultColors['white'],
-                                size: 15,
+                            // 리뷰 제목
+                            Text(
+                              review['userNickname'],
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+
+                            // 평점 (별표 표시)
+                            Row(
+                              children: [
+                                for (int i = 1; i <= 5; i++)
+                                  Icon(
+                                    Icons.star,
+                                    color: i <= review['rating']
+                                        ? defaultColors['green']
+                                        : defaultColors['white'],
+                                    size: 15,
+                                  ),
+                              ],
+                            ),
+                            if (review['content'] != '') SizedBox(height: 16),
+
+                            // 리뷰 설명
+                            if (review['content'] != '')
+                              Text(
+                                review['content'],
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                           ],
                         ),
-                        if (review['content'] != '') SizedBox(height: 16),
-
-                        // 리뷰 설명
-                        if (review['content'] != '')
-                          Text(
-                            review['content'],
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

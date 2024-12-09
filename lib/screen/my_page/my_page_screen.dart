@@ -116,7 +116,75 @@ class _MyPageScreenState extends State<MyPageScreen> {
             ),
             SizedBox(height: 20),
             // 알림 텍스트
-            MannerTemperatureBar(initialValue: userState.mannerTemperature),
+          Container(
+            padding: EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "냠냠 온도",
+                          style: TextStyle(
+                            color: defaultColors['black'],
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            decorationColor: defaultColors['black'],
+                            decorationThickness: 3.0,
+                          ),
+                        ),
+                        SizedBox(width: 4.0),
+                        Icon(Icons.info_outline, size: 16.0, color: Colors.grey),
+                      ],
+                    ),
+                    Text(
+                      "${userState.mannerTemperature.toStringAsFixed(1)}°C",
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                        color: getBarColor(userState.mannerTemperature),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.0),
+                Stack(
+                  children: [
+                    // Background bar
+                    Container(
+                      height: 8.0,
+                      decoration: BoxDecoration(
+                        color: defaultColors['white'],
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
+                    // Foreground bar
+                    FractionallySizedBox(
+                      widthFactor: ((userState.mannerTemperature - 0) / (99 - 0))
+                          .clamp(0.0, 1.0),
+                      child: Container(
+                        height: 8.0,
+                        decoration: BoxDecoration(
+                          color: getBarColor(userState.mannerTemperature),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.0),
+                // Slider to adjust the temperature value
+              ],
+            ),
+          ),
             SizedBox(height: 15),
             Divider(),
             SizedBox(height: 15),
@@ -196,6 +264,40 @@ class _MyPageScreenState extends State<MyPageScreen> {
     );
   }
 
+  Color? getBarColor(double currentValue) {
+    if (currentValue < 20.0) {
+      return mannerTemperature['primary'];
+    }
+
+    if (currentValue >= 20.0 && currentValue < 35.0) {
+      return mannerTemperature['secondary'];
+    }
+
+    if (currentValue >= 35.0 && currentValue < 42.0) {
+      return mannerTemperature['tertiary'];
+    }
+
+    if (currentValue >= 42.0 && currentValue < 50.0) {
+      return mannerTemperature['quaternary'];
+    }
+
+    if (currentValue >= 50.0 && currentValue < 57.0) {
+      return mannerTemperature['quinary'];
+    }
+
+    if (currentValue >= 57.0 && currentValue < 65.0) {
+      return mannerTemperature['senary'];
+    }
+
+    if (currentValue >= 65.0 && currentValue < 80.0) {
+      return mannerTemperature['septenary'];
+    }
+
+    if (currentValue >= 80.0 && currentValue <= 99.0) {
+      return mannerTemperature['octonary'];
+    }
+  }
+
   void _showLogoutDialog(BuildContext context) {
     final userState = Provider.of<UserState>(context, listen: false);
 
@@ -225,8 +327,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  _storage.delete(key: 'authToken');
+                onPressed: () async {
+                  await _storage.delete(key: 'authToken');
                   userState.initState();
                   Navigator.pop(context);
                 },
