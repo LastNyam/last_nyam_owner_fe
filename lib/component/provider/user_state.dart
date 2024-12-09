@@ -59,5 +59,6 @@ class UserState with ChangeNotifier {
     address = '';
     mannerTemperature = 0;
     isLogin = false;
+    notifyListeners();
   }
 }
