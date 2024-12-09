@@ -1,5 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:last_nyam_owner/const/colors.dart';
+import 'package:last_nyam_owner/screen/loading.dart';
 
 class ReviewListScreen extends StatefulWidget {
   @override
@@ -7,59 +11,92 @@ class ReviewListScreen extends StatefulWidget {
 }
 
 class _ReviewListScreenState extends State<ReviewListScreen> {
+  late final reviewList;
+  final _storage = const FlutterSecureStorage();
+  final Dio _dio = Dio();
+  bool _isLoading = true;
+
   // 더미 데이터
   final List<Map<String, dynamic>> reviews = [
     {
-      "title": "87세김경식할아버지인생최후의끌어치기",
+      "userNickname": "87세김경식할아버지인생최후의끌어치기",
       "rating": 1,
-      "description": "",
+      "content": "",
     },
     {
-      "title": "생존입니다",
+      "userNickname": "생존입니다",
       "rating": 2,
-      "description": "떡볶이가 even하게 익었습니다.",
+      "content": "떡볶이가 even하게 익었습니다.",
     },
     {
-      "title": "87세김경식할아버지인생최후의끌어치기",
+      "userNickname": "87세김경식할아버지인생최후의끌어치기",
       "rating": 3,
-      "description": "",
+      "content": "",
     },
     {
-      "title": "생존입니다",
+      "userNickname": "생존입니다",
       "rating": 4,
-      "description": "떡볶이가 even하게 익었습니다.",
+      "content": "떡볶이가 even하게 익었습니다.",
     },
     {
-      "title": "87세김경식할아버지인생최후의끌어치기",
+      "userNickname": "87세김경식할아버지인생최후의끌어치기",
       "rating": 5,
-      "description": "",
+      "content": "",
     },
     {
-      "title": "생존입니다",
+      "userNickname": "생존입니다",
       "rating": 4,
-      "description": "떡볶이가 even하게 익었습니다.",
+      "content": "떡볶이가 even하게 익었습니다.",
     },
     {
-      "title": "87세김경식할아버지인생최후의끌어치기",
+      "userNickname": "87세김경식할아버지인생최후의끌어치기",
       "rating": 3,
-      "description": "",
+      "content": "",
     },
     {
-      "title": "생존입니다",
+      "userNickname": "생존입니다",
       "rating": 4,
-      "description": "떡볶이가 even하게 익었습니다.",
+      "content": "떡볶이가 even하게 익었습니다.",
     },
     {
-      "title": "87세김경식할아버지인생최후의끌어치기",
+      "userNickname": "87세김경식할아버지인생최후의끌어치기",
       "rating": 5,
-      "description": "",
+      "content": "",
     },
     {
-      "title": "생존입니다",
+      "userNickname": "생존입니다",
       "rating": 4,
-      "description": "떡볶이가 even하게 익었습니다.",
+      "content": "떡볶이가 even하게 익었습니다.",
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _getReviewList();
+  }
+
+  void _getReviewList() async {
+    try {
+      final baseUrl = dotenv.env['BASE_URL'];
+      String? token = await _storage.read(key: 'authToken');
+      final response = await _dio.get(
+        '$baseUrl/review',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        reviewList = response.data['data'];
+      }
+    } on DioError catch (e) {
+      print('리뷰 리스트 조회 실패: ${e.response?.data}');
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,60 +120,64 @@ class _ReviewListScreenState extends State<ReviewListScreen> {
           },
         ),
       ),
-      body: Container(
-        color: Colors.white,
-        child: ListView.separated(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
-          itemCount: reviews.length,
-          separatorBuilder: (context, index) => Divider(
-            height: 1,
-            color: Color(0xfff5f5f5),
-          ),
-          itemBuilder: (context, index) {
-            final review = reviews[index];
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 리뷰 제목
-                  Text(
-                    review['title'],
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-
-                  // 평점 (별표 표시)
-                  Row(
-                    children: [
-                      for (int i = 1; i <= 5; i++)
-                        Icon(
-                          Icons.star,
-                          color: i <= review['rating']
-                              ? defaultColors['green']
-                              : defaultColors['white'],
-                          size: 15,
+      body: _isLoading
+          ? LoadingScreen()
+          : Container(
+              color: Colors.white,
+              child: ListView.separated(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                itemCount: reviewList.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: Color(0xfff5f5f5),
+                ),
+                itemBuilder: (context, index) {
+                  final review = reviewList[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 리뷰 제목
+                        Text(
+                          review['userNickname'],
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                    ],
-                  ),
-                  if (review['description'] != '')
-                    SizedBox(height: 16),
+                        SizedBox(height: 4),
 
-                  // 리뷰 설명
-                  if (review['description'] != '')
-                    Text(
-                      review['description'],
-                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                        // 평점 (별표 표시)
+                        Row(
+                          children: [
+                            for (int i = 1; i <= 5; i++)
+                              Icon(
+                                Icons.star,
+                                color: i <= review['rating']
+                                    ? defaultColors['green']
+                                    : defaultColors['white'],
+                                size: 15,
+                              ),
+                          ],
+                        ),
+                        if (review['content'] != '') SizedBox(height: 16),
+
+                        // 리뷰 설명
+                        if (review['content'] != '')
+                          Text(
+                            review['content'],
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                      ],
                     ),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }

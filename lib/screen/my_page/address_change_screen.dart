@@ -17,8 +17,8 @@ class _AddressChangeScreenState extends State<AddressChangeScreen> {
   final Dio _dio = Dio(); // Dio 인스턴스 생성
   final _storage = const FlutterSecureStorage();
 
-  bool _isAddressValid = false;
-  String? _addressError;
+  bool _isAddressValid = true;
+  String _addressError = '';
 
   Future<void> _getCoordinatesAndSendRequest(BuildContext context) async {
     String address = _addressController.text;
@@ -127,14 +127,21 @@ class _AddressChangeScreenState extends State<AddressChangeScreen> {
                 decoration: InputDecoration(
                   hintText: "도로명 주소를 입력하세요",
                   filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                  fillColor: defaultColors['white'],
+                  enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: _isAddressValid ? Colors.transparent : defaultColors['green']!,
+                      color: _isAddressValid ? Colors.transparent : Color(0xff417c4e),
                       width: 2.0,
                     ),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: _isAddressValid ? Colors.transparent : Color(0xff417c4e),
+                      width: 2.0,
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8.0),
                 ),
               ),
               if (!_isAddressValid) ...[
@@ -164,9 +171,10 @@ class _AddressChangeScreenState extends State<AddressChangeScreen> {
                   child: Text(
                     "변경 완료",
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
