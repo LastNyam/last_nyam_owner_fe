@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:last_nyam_owner/screen/my_page/my_page_screen.dart';
 import 'package:last_nyam_owner/screen/my_page/sign_up_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:last_nyam_owner/component/provider/user_state.dart';
@@ -77,7 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   GestureDetector(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       child: Text(
                         '비밀번호 찾기',
                         style: TextStyle(fontSize: 14.0, color: grey[400]),
@@ -95,7 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   GestureDetector(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       child: Text(
                         '회원가입',
                         style: TextStyle(fontSize: 14.0, color: grey[400]),
@@ -166,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -174,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -182,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(
                 color:
-                errorText == null ? Colors.transparent : Color(0xff417c4e),
+                    errorText == null ? Colors.transparent : Color(0xff417c4e),
                 width: 2.0,
               ),
             ),
@@ -237,7 +240,8 @@ class _LoginScreenState extends State<LoginScreen> {
             userState.updateProfileImage(profileImage);
           }
           userState.updateCallNumber(userResponse.data['data']['callNumber']);
-          userState.updateMannerTemperature(userResponse.data['data']['temperature']);
+          userState.updateMannerTemperature(
+              userResponse.data['data']['temperature']);
           userState.updateIsLogin(true);
         } else {
           await _storage.delete(key: 'authToken');

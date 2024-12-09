@@ -1,9 +1,15 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:last_nyam_owner/component/provider/user_state.dart';
 import 'package:last_nyam_owner/const/colors.dart';
 import 'package:last_nyam_owner/const/numberFormat.dart';
+import 'package:last_nyam_owner/screen/loading.dart';
+import 'package:provider/provider.dart';
 
 class AppColors {
   static const Color blackColor = Color(0xFF262626);
@@ -24,17 +30,22 @@ class SaleScreen extends StatefulWidget {
 
 class _SaleScreenState extends State<SaleScreen> {
   Map<String, dynamic> progressMessage = {
-    'waiting': '고객님의 주문 수락을 기다리고 있어요.',
-    'accepted': '고객님이 가게로 오고 있어요.',
-    'success': '수령 완료',
-    'failed': '미수령',
+    'BEFORE_ACCEPT': '고객님의 주문 수락을 기다리고 있어요.',
+    'RESERVATION': '고객님이 가게로 오고 있어요.',
+    'RECEIVED': '수령 완료',
+    'NOT_RECEIVED': '미수령',
   };
 
-  List<Map<String, dynamic>> orderItems = [
+  final _dio = Dio();
+  final _storage = const FlutterSecureStorage();
+
+  List<Map<String, dynamic>> orderItems = [];
+  bool _isLoading = true;
+  List<Map<String, dynamic>> orderItemss = [
     {
       'userNickname': '닉네임1',
       'userProfile': null,
-      'status': 'waiting',
+      'status': 'BEFORE_ACCEPT',
       'foodName': '국내산 돼지고기',
       'number': 4,
       'price': 12900,
@@ -43,7 +54,7 @@ class _SaleScreenState extends State<SaleScreen> {
     {
       'userNickname': '닉네임2',
       'userProfile': null,
-      'status': 'accepted',
+      'status': 'RESERVATION',
       'foodName': '국내산 돼지고기',
       'number': 4,
       'price': 12900,
@@ -52,7 +63,7 @@ class _SaleScreenState extends State<SaleScreen> {
     {
       'userNickname': '닉네임3',
       'userProfile': null,
-      'status': 'success',
+      'status': 'RECEIVED',
       'foodName': '국내산 돼지고기',
       'number': 4,
       'price': 12900,
@@ -76,40 +87,79 @@ class _SaleScreenState extends State<SaleScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '냠냠 판매',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+  void initState() {
+    super.initState();
+    getSaleList();
+  }
+
+  Future<void> getSaleList() async {
+    try {
+      final baseUrl = dotenv.env['BASE_URL'];
+      String? token = await _storage.read(key: 'authToken');
+      final response = await _dio.get(
+        '$baseUrl/reservation',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
         ),
-        centerTitle: true,
-        backgroundColor: AppColors.whiteColor,
-      ),
-      body: ListView.builder(
-        padding: EdgeInsets.all(8.0),
-        itemCount: orderItems.length,
-        itemBuilder: (context, index) {
-          final order = orderItems[index];
-          print(progressMessage[order['status']]);
-          return OrderItem(
-            progress: progressMessage[order['status']],
-            userNickName: order['userNickname'],
-            userProfile: order['userProfile'],
-            status: order['status'],
-            foodName: order['foodName'],
-            number: order['number'],
-            price: order['price'],
-            reservationDate: order['reservationDate'],
-            onCancel: () => removeOrder(index), // 삭제 함수 전달
-          );
-        },
-      ),
-    );
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          orderItems = response.data['data'];
+        });
+      }
+    } on DioError catch (e) {
+      print('냠냠판매 불러오기 실패: ${e.response?.data}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userState = Provider.of<UserState>(context);
+
+    return !userState.isLogin
+        ? Center(
+            child: Text(
+              '로그인 후 이용가능합니다.',
+              style:
+                  TextStyle(color: defaultColors['lightGreen'], fontSize: 18),
+            ),
+          )
+        : _isLoading
+            ? LoadingScreen()
+            : Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                    '냠냠 판매',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  centerTitle: true,
+                  backgroundColor: AppColors.whiteColor,
+                ),
+                body: ListView.builder(
+                  padding: EdgeInsets.all(8.0),
+                  itemCount: orderItems.length,
+                  itemBuilder: (context, index) {
+                    final order = orderItems[index];
+                    print(progressMessage[order['status']]);
+                    return OrderItem(
+                      progress: progressMessage[order['status']],
+                      userNickName: order['userNickname'],
+                      userProfile: order['userProfile'],
+                      status: order['status'],
+                      foodName: order['foodName'],
+                      number: order['number'],
+                      price: order['price'],
+                      reservationDate: order['reservationDate'],
+                      onCancel: () => removeOrder(index), // 삭제 함수 전달
+                    );
+                  },
+                ),
+              );
   }
 }
 
@@ -151,6 +201,8 @@ class _OrderItemState extends State<OrderItem> {
 
   @override
   Widget build(BuildContext context) {
+    final userState = Provider.of<UserState>(context);
+
     return Card(
       margin: EdgeInsets.symmetric(vertical: 6.0),
       color: AppColors.whiteColor,
@@ -160,7 +212,7 @@ class _OrderItemState extends State<OrderItem> {
         children: [
           ListTile(
             title: Text(
-              '${status == 'waiting' || status == 'accepted' ? widget.progress : '${DateFormat('yyyy년 MM월 dd일').format(DateTime.parse(widget.reservationDate))} ${widget.progress}'}',
+              '${status == 'BEFORE_ACCEPT' || status == 'RESERVATION' ? widget.progress : '${DateFormat('yyyy년 MM월 dd일').format(DateTime.parse(widget.reservationDate))} ${widget.progress}'}',
               style: TextStyle(
                 color: AppColors.blackColor,
                 fontSize: 8,
@@ -178,16 +230,16 @@ class _OrderItemState extends State<OrderItem> {
                       borderRadius: BorderRadius.circular(8.0),
                       child: widget.userProfile != null
                           ? Image.network(
-                        widget.userProfile!,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                      )
+                              widget.userProfile!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            )
                           : Container(
-                        color: grey[300],
-                        width: 50,
-                        height: 50,
-                      ),
+                              color: grey[300],
+                              width: 50,
+                              height: 50,
+                            ),
                     ),
                     SizedBox(width: 10),
                     Expanded(
@@ -229,7 +281,7 @@ class _OrderItemState extends State<OrderItem> {
                         ],
                       ),
                     ),
-                    if (status == 'waiting')
+                    if (status == 'BEFORE_ACCEPT')
                       Row(
                         children: [
                           Padding(
@@ -256,7 +308,8 @@ class _OrderItemState extends State<OrderItem> {
                                             widget.onCancel?.call();
                                           },
                                           style: TextButton.styleFrom(
-                                            backgroundColor: AppColors.greenColor,
+                                            backgroundColor:
+                                                AppColors.greenColor,
                                           ),
                                           child: Text(
                                             "예",
@@ -288,7 +341,7 @@ class _OrderItemState extends State<OrderItem> {
                             child: ElevatedButton(
                               onPressed: () {
                                 setState(() {
-                                  status = 'accepted';
+                                  status = 'RESERVATION';
                                 });
                               },
                               style: ElevatedButton.styleFrom(
@@ -307,7 +360,7 @@ class _OrderItemState extends State<OrderItem> {
                           ),
                         ],
                       ),
-                    if (status == 'accepted')
+                    if (status == 'RESERVATION')
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
                         child: CustomCircularTimer(remainingMinutes: 10),
@@ -322,7 +375,6 @@ class _OrderItemState extends State<OrderItem> {
     );
   }
 }
-
 
 // 커스텀 타이머 위젯
 class CustomCircularTimer extends StatefulWidget {
