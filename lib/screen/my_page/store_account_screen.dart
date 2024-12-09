@@ -161,6 +161,9 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
                         ),
                         Spacer(),
                         SizedBox(
+                          height: 40,
+                        ),
+                        SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () async {
@@ -185,29 +188,31 @@ class _StoreAccountScreenState extends State<StoreAccountScreen> {
                                     );
 
                                     if (response.statusCode == 200) {
-                                      print('회원가입 완료');
+                                      print('token: ${response.data['data']['token']}');
                                       token =
-                                          response.data['data']['accessToken'];
+                                          response.data['data']['token'];
                                     }
                                   } on DioError catch (e) {
                                     print('회원가입 실패: ${e.response?.data}');
                                   }
 
+                                  final formData = FormData.fromMap({
+                                    'storeName': storeName,
+                                    'businessNumber': _businessNumber,
+                                    'callNumber': callNumber,
+                                    'address': address,
+                                    'posX': posX,
+                                    'posY': posY,
+                                  });
+
                                   final response = await _dio.post(
                                     '$baseUrl/store',
-                                    data: {
-                                      'storeName': storeName,
-                                      'businessNumber': _businessNumber,
-                                      'storeImage': null,
-                                      'callNumber': callNumber,
-                                      'address': address,
-                                      'posX': posX,
-                                      'posY': posY,
-                                    },
+                                    data: formData,
                                     options: Options(
                                       headers: {
                                         'Authorization': 'Bearer ${token}'
                                       },
+                                      contentType: 'multipart/form-data',
                                     ),
                                   );
 

@@ -487,6 +487,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _validateForm() {
     setState(() {
+      // TODO: 밑에 주석 풀기
       // _isValid = _isPhoneNumberValid &&
       //     _isBusinessValid &&
       //     _isPasswordValid &&

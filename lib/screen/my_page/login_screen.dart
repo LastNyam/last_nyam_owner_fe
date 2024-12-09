@@ -225,20 +225,19 @@ class _LoginScreenState extends State<LoginScreen> {
         // Save token in secure storage
         await _storage.write(key: 'authToken', value: token);
 
-        final userResponse = await _dio.get('$baseUrl/auth/my-info',
+        final userResponse = await _dio.get('$baseUrl/store',
             options: Options(headers: {'Authorization': 'Bearer $token'}));
 
         if (userResponse.statusCode == 200) {
           final userState = Provider.of<UserState>(context, listen: false);
-          userState.updateUserName(userResponse.data['data']['nickname']);
-          userState.updatePhoneNumber(userResponse.data['data']['phoneNumber']);
           userState.updateStoreName(userResponse.data['data']['storeName']);
           if (userResponse.data['data']['profileImage'] != null) {
             Uint8List? profileImage = Uint8List.fromList(
                 base64Decode(userResponse.data['data']['profileImage']));
             userState.updateProfileImage(profileImage);
           }
-          userState.updateMannerTemperature(userResponse.data['data']['mannerTemperature']);
+          userState.updateCallNumber(userResponse.data['data']['callNumber']);
+          userState.updateMannerTemperature(userResponse.data['data']['temperature']);
           userState.updateIsLogin(true);
         } else {
           await _storage.delete(key: 'authToken');
@@ -249,8 +248,8 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         throw Exception('로그인 실패');
       }
-    } catch (e) {
-      print('로그인 실패: ${e}');
+    } on DioError catch (e) {
+      print('로그인 실패: ${e.response?.data}');
       setState(() {
         _passwordError = '계정이 존재하지 않거나, 비밀번호가 일치하지 않습니다.';
       });

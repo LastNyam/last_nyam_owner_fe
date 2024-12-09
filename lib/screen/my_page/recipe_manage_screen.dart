@@ -18,35 +18,35 @@ class _RecipeManageScreenState extends State<RecipeManageScreen> {
     {
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },
     {
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },
     {
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },
     {
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },
     {
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },{
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },{
       "title": "쿨피스",
       "description": "살얼음 동동 뜨도록 냉동실에 얼려놓은 쿨피스로 화채 만들기, 강추드립니다!! 레시피가 어쩌고저쩌고",
-      "image": "/assets/image/coolpis.png", // 이미지 URL
+      "image": "assets/image/coolpis.png", // 이미지 URL
     },
   ];
 
@@ -197,7 +197,7 @@ class _RecipeManageScreenState extends State<RecipeManageScreen> {
                   if (recipe["image"] != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
-                      child: Image.network(
+                      child: Image.asset(
                         recipe["image"],
                         height: 60,
                         width: 60,

@@ -13,8 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:last_nyam_owner/component/provider/user_state.dart';
 import 'package:last_nyam_owner/screen/my_page/login_screen.dart';
 import 'package:last_nyam_owner/screen/my_page/profile_edit_screen.dart';
-import 'dart:typed_data';
-import 'dart:convert';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -96,7 +94,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                           Text(
                             !userState.isLogin
                                 ? '로그인하고 냠냠 시작하기' // 로그인 메시지
-                                : '${userState.userName}', // 사용자 이름 표시
+                                : '${userState.storeName}', // 사용자 이름 표시
                             style: TextStyle(
                               fontSize: 16,
                               color: defaultColors['green'],
@@ -140,21 +138,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
             Expanded(
               child: ListView(
                 children: [
-                  ListTile(
-                    leading: Icon(Icons.store_outlined,
-                        color: defaultColors['black']),
-                    title: Text('가게 관리'),
-                    trailing: Icon(Icons.chevron_right,
-                        color: defaultColors['lightGreen']),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => StoreManageScreen(),
-                        ),
-                      );
-                    },
-                  ),
                   ListTile(
                     leading: Icon(Icons.cookie_outlined,
                         color: defaultColors['black']),
@@ -242,8 +225,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () async {
-                  await _storage.delete(key: 'authToken');
+                onPressed: () {
+                  _storage.delete(key: 'authToken');
                   userState.initState();
                   Navigator.pop(context);
                 },
@@ -254,11 +237,14 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   ),
                   minimumSize: Size(double.infinity, 50),
                 ),
-                child: Text('로그아웃',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: defaultColors['white'],
-                        fontWeight: FontWeight.bold)),
+                child: Text(
+                  '로그아웃',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: defaultColors['white'],
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
