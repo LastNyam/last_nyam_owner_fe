@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +34,7 @@ class _SaleScreenState extends State<SaleScreen> {
   Map<String, dynamic> progressMessage = {
     'BEFORE_ACCEPT': '고객님의 주문 수락을 기다리고 있어요.',
     'RESERVATION': '고객님이 가게로 오고 있어요.',
+    'CANCEL': '취소',
     'RECEIVED': '수령 완료',
     'NOT_RECEIVED': '미수령',
   };
@@ -39,46 +42,8 @@ class _SaleScreenState extends State<SaleScreen> {
   final _dio = Dio();
   final _storage = const FlutterSecureStorage();
 
-  List<Map<String, dynamic>> orderItems = [];
+  List<dynamic> orderItems = [];
   bool _isLoading = true;
-  List<Map<String, dynamic>> orderItemss = [
-    {
-      'userNickname': '닉네임1',
-      'userProfile': null,
-      'status': 'BEFORE_ACCEPT',
-      'foodName': '국내산 돼지고기',
-      'number': 4,
-      'price': 12900,
-      'reservationDate': '2024-12-05T21:33:33',
-    },
-    {
-      'userNickname': '닉네임2',
-      'userProfile': null,
-      'status': 'RESERVATION',
-      'foodName': '국내산 돼지고기',
-      'number': 4,
-      'price': 12900,
-      'reservationDate': '2024-12-05T21:33:33',
-    },
-    {
-      'userNickname': '닉네임3',
-      'userProfile': null,
-      'status': 'RECEIVED',
-      'foodName': '국내산 돼지고기',
-      'number': 4,
-      'price': 12900,
-      'reservationDate': '2024-12-05T21:33:33',
-    },
-    {
-      'userNickname': '닉네임4',
-      'userProfile': null,
-      'status': 'failed',
-      'foodName': '국내산 돼지고기',
-      'number': 4,
-      'price': 12900,
-      'reservationDate': '2024-12-05T21:33:33',
-    },
-  ];
 
   void removeOrder(int index) {
     setState(() {
@@ -102,10 +67,12 @@ class _SaleScreenState extends State<SaleScreen> {
           headers: {'Authorization': 'Bearer $token'},
         ),
       );
+      print(response);
 
       if (response.statusCode == 200) {
         setState(() {
           orderItems = response.data['data'];
+          _isLoading = false;
         });
       }
     } on DioError catch (e) {
@@ -147,6 +114,7 @@ class _SaleScreenState extends State<SaleScreen> {
                     final order = orderItems[index];
                     print(progressMessage[order['status']]);
                     return OrderItem(
+                      reservationId: order['reservationId'],
                       progress: progressMessage[order['status']],
                       userNickName: order['userNickname'],
                       userProfile: order['userProfile'],
@@ -164,6 +132,7 @@ class _SaleScreenState extends State<SaleScreen> {
 }
 
 class OrderItem extends StatefulWidget {
+  final int reservationId;
   final String progress;
   final String userNickName;
   final String? userProfile;
@@ -171,10 +140,11 @@ class OrderItem extends StatefulWidget {
   final String foodName;
   final int number;
   final int price;
-  final String reservationDate;
+  final String? reservationDate;
   final VoidCallback? onCancel;
 
   OrderItem({
+    required this.reservationId,
     required this.progress,
     required this.userNickName,
     required this.userProfile,
@@ -192,6 +162,8 @@ class OrderItem extends StatefulWidget {
 
 class _OrderItemState extends State<OrderItem> {
   late String status;
+  final _dio = Dio();
+  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -212,7 +184,7 @@ class _OrderItemState extends State<OrderItem> {
         children: [
           ListTile(
             title: Text(
-              '${status == 'BEFORE_ACCEPT' || status == 'RESERVATION' ? widget.progress : '${DateFormat('yyyy년 MM월 dd일').format(DateTime.parse(widget.reservationDate))} ${widget.progress}'}',
+              '${status == 'BEFORE_ACCEPT' || status == 'RESERVATION' || status == 'CANCEL' ? widget.progress : '${DateFormat('yyyy년 MM월 dd일').format(DateTime.parse(widget.reservationDate!))} ${widget.progress}'}',
               style: TextStyle(
                 color: AppColors.blackColor,
                 fontSize: 8,
@@ -229,8 +201,9 @@ class _OrderItemState extends State<OrderItem> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
                       child: widget.userProfile != null
-                          ? Image.network(
-                              widget.userProfile!,
+                          ? Image.memory(
+                              Uint8List.fromList(
+                                  base64Decode(widget.userProfile!)),
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
@@ -292,6 +265,11 @@ class _OrderItemState extends State<OrderItem> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(15),
+                                            bottom: Radius.circular(15)),
+                                      ),
                                       backgroundColor: AppColors.whiteColor,
                                       title: Text("예약 취소"),
                                       content: Text("예약을 취소하시겠습니까?"),
@@ -303,9 +281,34 @@ class _OrderItemState extends State<OrderItem> {
                                           child: Text("아니오"),
                                         ),
                                         TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                            widget.onCancel?.call();
+                                          onPressed: () async {
+                                            try {
+                                              final baseUrl =
+                                                  dotenv.env['BASE_URL'];
+                                              String? token = await _storage
+                                                  .read(key: 'authToken');
+                                              final response = await _dio.post(
+                                                '$baseUrl/reservation/${widget.reservationId}/cancel',
+                                                data: {
+                                                  'cancelMessage':
+                                                      "예약이 취소되었습니다.",
+                                                },
+                                                options: Options(
+                                                  headers: {
+                                                    'Authorization':
+                                                        'Bearer $token'
+                                                  },
+                                                ),
+                                              );
+
+                                              if (response.statusCode == 200) {
+                                                Navigator.of(context).pop();
+                                                widget.onCancel?.call();
+                                              }
+                                            } on DioError catch (e) {
+                                              print(
+                                                  '예약 취소 실패: ${e.response?.data}');
+                                            }
                                           },
                                           style: TextButton.styleFrom(
                                             backgroundColor:
@@ -339,7 +342,23 @@ class _OrderItemState extends State<OrderItem> {
                           Padding(
                             padding: const EdgeInsets.only(left: 8.0),
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                try {
+                                  final baseUrl = dotenv.env['BASE_URL'];
+                                  String? token =
+                                      await _storage.read(key: 'authToken');
+                                  final response = await _dio.post(
+                                    '$baseUrl/reservation/${widget.reservationId}/ok',
+                                    options: Options(
+                                      headers: {
+                                        'Authorization': 'Bearer $token'
+                                      },
+                                    ),
+                                  );
+                                } on DioError catch (e) {
+                                  print('예약 수락 실패: ${e.response?.data}');
+                                }
+
                                 setState(() {
                                   status = 'RESERVATION';
                                 });
@@ -363,7 +382,21 @@ class _OrderItemState extends State<OrderItem> {
                     if (status == 'RESERVATION')
                       Padding(
                         padding: const EdgeInsets.only(left: 8.0),
-                        child: CustomCircularTimer(remainingMinutes: 10),
+                        child: CustomCircularTimer(
+                          reservationId: widget.reservationId,
+                          remainingMinutes: 10 +
+                                      calculateMinutesDifference(
+                                          widget.reservationDate != null
+                                              ? widget.reservationDate!
+                                              : DateTime.now().toString()) <
+                                  0
+                              ? 0
+                              : 10 +
+                                  calculateMinutesDifference(
+                                      widget.reservationDate != null
+                                          ? widget.reservationDate!
+                                          : DateTime.now().toString()),
+                        ),
                       ),
                   ],
                 ),
@@ -376,11 +409,30 @@ class _OrderItemState extends State<OrderItem> {
   }
 }
 
-// 커스텀 타이머 위젯
+int calculateMinutesDifference(String inputTime) {
+  // 입력 시간은 ISO8601 형식(예: "2024-12-10T14:00:00")이라고 가정
+  DateTime parsedInputTime = DateTime.parse(inputTime);
+
+  // 현재 시간 가져오기
+  DateTime now = DateTime.now();
+
+  // 시간 차이를 계산 (in minutes)
+  Duration difference = parsedInputTime.difference(now);
+  int minutesDifference = difference.inMinutes;
+
+  print('시간: $minutesDifference');
+
+  return minutesDifference;
+}
+
 class CustomCircularTimer extends StatefulWidget {
+  final int reservationId;
   final int remainingMinutes;
 
-  CustomCircularTimer({required this.remainingMinutes});
+  CustomCircularTimer({
+    required this.reservationId,
+    required this.remainingMinutes,
+  });
 
   @override
   _CustomCircularTimerState createState() => _CustomCircularTimerState();
@@ -389,11 +441,15 @@ class CustomCircularTimer extends StatefulWidget {
 class _CustomCircularTimerState extends State<CustomCircularTimer> {
   late int remainingMinutes;
   late Timer timer;
+  late bool isTimerCompleted; // 타이머 완료 상태를 관리하는 변수 추가
+  final _storage = const FlutterSecureStorage();
+  final _dio = Dio();
 
   @override
   void initState() {
     super.initState();
     remainingMinutes = widget.remainingMinutes;
+    isTimerCompleted = remainingMinutes == 0;
 
     // 타이머 시작: 1분마다 감소
     timer = Timer.periodic(Duration(minutes: 1), (timer) {
@@ -402,6 +458,9 @@ class _CustomCircularTimerState extends State<CustomCircularTimer> {
           remainingMinutes--;
         });
       } else {
+        setState(() {
+          isTimerCompleted = true; // 타이머가 완료되면 상태 업데이트
+        });
         timer.cancel();
       }
     });
@@ -415,34 +474,90 @@ class _CustomCircularTimerState extends State<CustomCircularTimer> {
 
   @override
   Widget build(BuildContext context) {
-    double percentage = remainingMinutes / widget.remainingMinutes;
+    double percentage = widget.remainingMinutes != 0
+        ? remainingMinutes / widget.remainingMinutes
+        : 0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // SizedBox(height: 10),
-        Container(
-          width: 55, // 타이머 크기 조정 (가로)
-          height: 55, // 타이머 크기 조정 (세로)
-          child: Stack(
-            alignment: Alignment.center,
+        if (!isTimerCompleted) // 타이머가 완료되지 않았을 때 CircularProgressIndicator 표시
+          Container(
+            width: 55, // 타이머 크기 조정 (가로)
+            height: 55, // 타이머 크기 조정 (세로)
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: percentage, // 진행 상태
+                  color: AppColors.greenColor,
+                  backgroundColor: AppColors.grayColor.withOpacity(0.2),
+                  strokeWidth: 3.0, // 원의 두께
+                ),
+                Text(
+                  '${remainingMinutes}분',
+                  style: TextStyle(
+                    fontSize: 12, // 타이머 텍스트 크기
+                    color: AppColors.blackColor,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Row(
             children: [
-              CircularProgressIndicator(
-                value: percentage, // 진행 상태
-                color: AppColors.greenColor,
-                backgroundColor: AppColors.grayColor.withOpacity(0.2),
-                strokeWidth: 3.0, // 원의 두께
+              Transform.scale(
+                scale: 0.8,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // 버튼 클릭 시 동작 정의
+                    print("타이머 완료 후 버튼 클릭!");
+                    final baseUrl = dotenv.env['BASE_URL'];
+                    String? token = await _storage.read(key: 'authToken');
+                    final response = await _dio.patch(
+                      '$baseUrl/reservation/${widget.reservationId}/status',
+                      data: {'status': 'NOT_RECEIVED'},
+                      options: Options(
+                        headers: {'Authorization': 'Bearer $token'},
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: defaultColors['white'],
+                  ),
+                  child: Text(
+                    "미수령",
+                    style:
+                        TextStyle(color: defaultColors['black'], fontSize: 18),
+                  ),
+                ),
               ),
-              Text(
-                '${remainingMinutes}분',
-                style: TextStyle(
-                  fontSize: 12, // 타이머 텍스트 크기
-                  color: AppColors.blackColor,
+              Transform.scale(
+                scale: 0.8,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final baseUrl = dotenv.env['BASE_URL'];
+                    String? token = await _storage.read(key: 'authToken');
+                    final response = await _dio.patch(
+                      '$baseUrl/reservation/${widget.reservationId}/status',
+                      data: {'status': 'RECEIVED'},
+                      options: Options(
+                        headers: {'Authorization': 'Bearer $token'},
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.greenColor,
+                  ),
+                  child: Text(
+                    " 수령 ",
+                    style: TextStyle(color: AppColors.whiteColor, fontSize: 18),
+                  ),
                 ),
               ),
             ],
-          ),
-        ),
+          )
       ],
     );
   }
