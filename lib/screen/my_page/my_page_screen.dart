@@ -33,12 +33,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
       appBar: AppBar(
         backgroundColor: defaultColors['white'],
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_none, color: defaultColors['black']),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -206,21 +200,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
             Expanded(
               child: ListView(
                 children: [
-                  ListTile(
-                    leading: Icon(Icons.cookie_outlined,
-                        color: defaultColors['black']),
-                    title: Text('레시피 관리'),
-                    trailing: Icon(Icons.chevron_right,
-                        color: defaultColors['lightGreen']),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RecipeManageScreen(),
-                        ),
-                      );
-                    },
-                  ),
                   ListTile(
                     leading: Icon(FluentIcons.temperature_24_filled,
                         color: defaultColors['black']),
