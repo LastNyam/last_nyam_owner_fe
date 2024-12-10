@@ -1,5 +1,3 @@
-// lib/screen/home_screen.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:last_nyam_owner/component/home/category.dart';
@@ -13,6 +11,7 @@ import 'package:last_nyam_owner/service/backend_api.dart';
 // 1000원 표시 ','
 import 'package:intl/intl.dart';
 
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,7 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class ContentCard extends StatelessWidget {
   final PostedProduct product;
-  final bool isSelected; // isSelected 추가
+  final bool isSelected;
 
   const ContentCard({super.key, required this.product, this.isSelected = false});
 
@@ -60,12 +59,14 @@ class ContentCard extends StatelessWidget {
     // 남은 시간
     final timeLeft = calculateTimeLeft(product.endTime);
 
+
     return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
+      width: MediaQuery.of(context).size.width * 0.3,
       constraints: const BoxConstraints(maxWidth: 350),
-      margin: const EdgeInsets.symmetric(vertical: 5), // 여백 축소
+      margin: const EdgeInsets.symmetric(vertical: 7),
+
       decoration: ShapeDecoration(
-        color: const Color(0xfffafafa),
+        color: Color(0xfffafafa),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(13),
         ),
@@ -73,117 +74,142 @@ class ContentCard extends StatelessWidget {
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12), // 패딩 축소
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 카테고리 텍스트
-                      Text(
-                        product.foodCategory.toLowerCase() == 'ingredients'
-                            ? '식자재'
-                            : '완제품',
-                        style: const TextStyle(
-                          color: Color(0xffb9c6bc),
-                          fontSize: 9, // 폰트 크기 축소
-                        ),
-                      ),
-                      const SizedBox(height: 6), // 간격 축소
-
-                      // 상품 제목
-                      Text(
-                        product.foodName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF262626),
-                          fontSize: 10, // 폰트 크기 축소
-                        ),
-                      ),
-                      const SizedBox(height: 3), // 간격 축소
-
-                      // 할인율 및 가격 정보
-                      Row(
-                        children: [
-                          Text(
-                            '${discountRate.toStringAsFixed(0)}%',
-                            style: const TextStyle(
-                              color: Color(0xFF417C4E),
-                              fontSize: 13, // 폰트 크기 축소
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$formattedDiscountedPrice원',
-                            style: const TextStyle(
-                              color: Color(0xFF262626),
-                              fontSize: 13, // 폰트 크기 축소
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 3), // 간격 축소
-
-                      // 남은 시간
-                      Row(
-                        children: [
-                          Image.asset(
-                            'assets/icon/alarm.png',
-                            width: 11, // 아이콘 크기 축소
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            timeLeft,
-                            style: const TextStyle(
-                              fontSize: 10, // 폰트 크기 축소
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: product.image.isNotEmpty
-                      ? Image.memory(
-                    base64Decode(product.image),
-                    width: 80, // 이미지 크기 축소
-                    height: 60, // 이미지 크기 축소
-                    fit: BoxFit.cover,
-                  )
-                      : const SizedBox(
-                    width: 80,
-                    height: 60,
-                    child: Center(child: Text('이미지 없음')),
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: 16
             ),
-          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 카테고리 텍스트
+                    Text(
+                      product.foodCategory == 'ingredients' ? '식자재' : '완제품',
+                      style: const TextStyle(
+                        color: Color(0xffb9c6bc),
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+
+                    // 상품 제목
+                    Text(
+                      product.foodName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF262626),
+                        fontSize: 10,
+                      ),
+                    ),
+
+                    // 할인율 및 가격 정보
+                    Row(
+                      children: [
+                        Text(
+                          '${discountRate.toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            color: Color(0xFF417C4E),
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$formattedDiscountedPrice원',
+                          style: const TextStyle(
+                            color: Color(0xFF262626),
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // 남은 시간
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/icon/alarm.png',
+                          width: 13,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          timeLeft,
+                          style: const TextStyle(
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: product.image.isNotEmpty
+                    ? Image.memory(
+                  base64Decode(product.image),
+                  width: 80, // 이미지 크기 축소
+                  height: 60, // 이미지 크기 축소
+                  fit: BoxFit.cover,
+                )
+                    : const SizedBox(
+                  width: 80,
+                  height: 60,
+                  child: Center(child: Text('이미지 없음')),
+                ),
+              ),
+            ],
+          )),
+          // 품절, 숨김 상태 모두 적용된 경우 아이콘 표시
+          // if (product.isSoldout && product.isHiden)
+          //   Positioned.fill(
+          //     child: Container(
+          //       decoration: BoxDecoration(
+          //         color: const Color(0xff417c4e).withOpacity(0.7),
+          //         borderRadius: BorderRadius.circular(13),
+          //       ),
+          //       child: Center(
+          //         child: Row(
+          //           mainAxisSize: MainAxisSize.min,
+          //           children: [
+          //             Icon(
+          //               Icons.pause_circle_outline,
+          //               color: const Color(0xfffafafa),
+          //               size: 26,
+          //             ),
+          //             const SizedBox(width: 10),
+          //             Icon(
+          //               Icons.visibility_off,
+          //               color: const Color(0xfffafafa),
+          //               size: 26,
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
           // 품절 처리 했을 때
           if (product.status.toUpperCase() == 'SOLD_OUT')
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xff417c4e).withOpacity(0.7),
+                  color: Color(0xff417c4e).withOpacity(0.7),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.pause_circle_outline,
                     color: Color(0xfffafafa),
-                    size: 24, // 아이콘 크기 축소
+                    size: 26,
                   ),
                 ),
               ),
@@ -193,26 +219,25 @@ class ContentCard extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xff417c4e).withOpacity(0.7),
+                  color: Color(0xff417c4e).withOpacity(0.7),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.visibility_off,
                     color: Color(0xfffafafa),
-                    size: 24, // 아이콘 크기 축소
+                    size: 26,
                   ),
                 ),
               ),
             ),
-          // 선택된 경우 테두리 표시
           if (isSelected)
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: const Color(0xFF417C4E),
-                    width: 3, // 테두리 두께 축소
+                    width: 4,  // 테두리 두께 조정
                   ),
                   borderRadius: BorderRadius.circular(13),
                 ),
@@ -221,9 +246,9 @@ class ContentCard extends StatelessWidget {
         ],
       ),
     );
-
   }
 }
+
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCategory = 'all'; // 상단 카테고리 선택 상태
@@ -238,6 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     fetchProducts();
   }
+
+
 
   // 상품 데이터 가져오기
   Future<void> fetchProducts() async {
@@ -277,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xfff2f2f2),
+        backgroundColor: Color(0xfff2f2f2),
         // 카테고리 위젯 추가
         title: Category(
           onCategorySelected: (String categoryType) {
@@ -287,23 +314,23 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         actions: [
-          IconButton(
-            icon: Image.asset(
-              'assets/icon/search.png',
-              width: 24,
-            ),
-            onPressed: () {
-              // showSearch(
-              //   context: context,
-              //   delegate: ProductSearchDelegate(products),
-              // );
-            },
-          ),
+          // IconButton(
+          //   icon: Image.asset(
+          //     'assets/icon/search.png',
+          //     width: 24,
+          //   ),
+          //   onPressed: () {
+          //     // showSearch(
+          //     //   context: context,
+          //     //   delegate: ProductSearchDelegate(products),
+          //     // );
+          //   },
+          // ),
         ],
       ),
       body: Column(
         children: [
-          const Divider(
+          Divider(
             color: Color(0xffb9c6bc),
             thickness: 0.1,
           ),
@@ -319,11 +346,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            SoldOutScreen(products: products),
+                        builder: (context) => SoldOutScreen(products: products),
                       ),
                     );
-                    fetchProducts(); // 데이터 다시 로드
+                    fetchProducts();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: defaultColors['pureWhite'],
@@ -331,15 +357,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min, // 내용물에 맞게 크기 조절
-                    children: const [
-                      Icon(Icons.pause_circle_outline, size: 16),
-                      SizedBox(width: 4), // 아이콘과 텍스트 간격 조정
-                      Text(
+                    children: [
+                      const Icon(Icons.pause_circle_outline, size: 16),
+                      const SizedBox(width: 4), // 아이콘과 텍스트 간격 조정
+                      const Text(
                         '품절',
                         style: TextStyle(
                           fontSize: 15,
@@ -355,9 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () async {
                     await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              HiddenScreen(products: products)),
+                      MaterialPageRoute(builder: (context) => HiddenScreen(products: products)),
                     );
                     fetchProducts(); // 데이터 다시 로드
                   },
@@ -367,15 +390,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min, // 내용물에 맞게 크기 조절
-                    children: const [
-                      Icon(Icons.visibility_off, size: 16), // 숨김 아이콘
-                      SizedBox(width: 4), // 아이콘과 텍스트 간격
-                      Text(
+                    children: [
+                      const Icon(Icons.visibility_off, size: 16), // 숨김 아이콘
+                      const SizedBox(width: 4), // 아이콘과 텍스트 간격
+                      const Text(
                         '숨김',
                         style: TextStyle(
                           fontSize: 15,
@@ -387,13 +409,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const Spacer(),
 
+
                 // 상품 추가 버튼
                 ElevatedButton(
                   onPressed: () async {
                     await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => AddProductScreen()),
+                      MaterialPageRoute(builder: (context) => AddProductScreen()
+                      ),
                     );
                     fetchProducts(); // 데이터 다시 로드
                   },
@@ -403,22 +426,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(
-                        Icons.add,
-                        size: 16,
-                        color: Color(0xfffafafa),
-                      ), // 플러스 아이콘 추가
-                      SizedBox(width: 4), // 아이콘과 텍스트 간격
-                      Text(
+                    children: [
+                      const Icon(Icons.add, size: 16, color: Color(0xfffafafa),), // 플러스 아이콘 추가
+                      const SizedBox(width: 4), // 아이콘과 텍스트 간격
+                      const Text(
                         '상품 추가',
                         style: TextStyle(
-                            fontSize: 15, color: Color(0xfffafafa)),
+                          fontSize: 15,
+                          color: Color(0xfffafafa)
+                        ),
                       ),
                     ],
                   ),
@@ -449,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisCount: 1, // 한 행에 2개씩 표시
                 mainAxisSpacing: 5,
                 crossAxisSpacing: 5,
-                childAspectRatio: 3 / 4,
+                childAspectRatio: 3/1,
               ),
               itemCount: getFilteredProducts().length,
               itemBuilder: (context, index) {

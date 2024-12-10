@@ -128,7 +128,4 @@ class BackendAPI {
       throw Exception('상품 추가 요청 중 문제가 발생했습니다.');
     }
   }
-
-
-
 }
