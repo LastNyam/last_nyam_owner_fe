@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // 이미지 선택을 위해 추가
 import 'package:last_nyam_owner/const/colors.dart';
 import 'dart:io'; // 파일 처리를 위해 추가
-import 'home_screen.dart'; // Product 클래스 import
-import 'package:intl/intl.dart'; // 숫자 포멧
+import 'package:intl/intl.dart'; // 숫자 포맷
 import 'package:flutter/services.dart'; // TextInputFormatter를 위해 추가
+import 'package:last_nyam_owner/model/product.dart';
+import 'dart:convert'; // Base64 인코딩을 위해 추가
+import 'package:last_nyam_owner/service/backend_api.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({Key? key}) : super(key: key);
@@ -20,6 +22,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _discountPriceController = TextEditingController();
   final TextEditingController _recipeController = TextEditingController();
+
+  final BackendAPI _backendAPI = BackendAPI();
 
   // 수량 및 시간
   int _quantity = 1;
@@ -37,6 +41,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   // 숫자 포맷터
   final _numberFormatter = NumberFormat("#,###");
 
+  // 카테고리 선택을 위한 상태 변수
+  String? foodCategory;
+
   @override
   void dispose() {
     // 컨트롤러 해제
@@ -49,20 +56,34 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      // 에러 핸들링 (예: 사용자에게 알림)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미지 선택 중 오류가 발생했습니다: $e')),
+      );
     }
   }
 
   Future<void> _pickRecipeImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _recipeImageFile = File(pickedFile.path);
-      });
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _recipeImageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      // 에러 핸들링 (예: 사용자에게 알림)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('레시피 이미지 선택 중 오류가 발생했습니다: $e')),
+      );
     }
   }
 
@@ -378,27 +399,104 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
-  void _onAddProductPressed() {
+  void _onAddProductPressed() async {
+    // 필수 항목 검증
     if (_titleController.text.isEmpty ||
         _priceController.text.isEmpty ||
-        _discountPriceController.text.isEmpty) {
+        _discountPriceController.text.isEmpty ||
+        foodCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('필수 항목을 모두 입력해주세요.')),
       );
       return;
     }
 
-    final newProduct = Product(
-      category: '기타',
-      title: _titleController.text,
-      price: '${_priceController.text}원',
-      discount: '${_discountPriceController.text}원',
-      imagePath: _imageFile?.path ?? 'image/default.png',
-      timeLeft: '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}',
-      isSoldout: false,
-      isHiden: false,
+    // 가격 파싱 (콤마 제거)
+    final originPrice = int.tryParse(_priceController.text.replaceAll(',', '')) ?? 0;
+    final discountPrice = int.tryParse(_discountPriceController.text.replaceAll(',', '')) ?? 0;
+
+    // 마감 시간 설정
+    final now = DateTime.now();
+    final endTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      selectedHour,
+      selectedMinute,
     );
 
+    // 예약 시간 설정 (예: 마감 시간과 동일하게 설정하거나 별도로 계산)
+    // 여기서는 마감 시간과 동일하게 설정
+    final int reservationTime = endTime.millisecondsSinceEpoch ~/ 1000;
+
+    // 이미지 파일을 Base64로 인코딩
+    String foodImageBase64 = '';
+    if (_imageFile != null) {
+      final bytes = await _imageFile!.readAsBytes();
+      foodImageBase64 = base64Encode(bytes);
+    } else {
+      // 기본 이미지 설정 (필요 시)
+      foodImageBase64 = '';
+    }
+
+    String recipeImageBase64 = '';
+    if (_recipeImageFile != null) {
+      final bytes = await _recipeImageFile!.readAsBytes();
+      recipeImageBase64 = base64Encode(bytes);
+    }
+
+    // 레시피 내용
+    final recipeContent = _recipeController.text;
+
+    // 상품 상태 설정 (예: AVAILABLE)
+    final status = 'AVAILABLE';
+
+    // 새로운 PostingProduct 객체 생성
+    final newProduct = PostingProduct(
+      foodCategory: foodCategory!,
+      foodName: _titleController.text,
+      content: _descriptionController.text,
+      originPrice: originPrice,
+      discountPrice: discountPrice,
+      endTime: endTime.toIso8601String(),
+      reservationTime: reservationTime,
+      recipe: recipeContent,
+      recipeImage: recipeImageBase64,
+      foodImage: foodImageBase64,
+    );
+
+    // 상품 추가 로직 수행 (예: 서버로 전송)
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // BackendAPI를 사용하여 상품 추가
+      final postedProduct = await _backendAPI.addProduct(newProduct);
+
+      // 로딩 인디케이터 닫기
+      Navigator.pop(context);
+
+      // 성공 메시지 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('상품이 성공적으로 추가되었습니다.')),
+      );
+
+      // 이전 화면으로 돌아가면서 추가된 상품을 반환
+      Navigator.pop(context, postedProduct);
+    } catch (e) {
+      // 로딩 인디케이터 닫기
+      Navigator.pop(context);
+
+      // 에러 메시지 표시
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('상품 추가 실패: $e')),
+      );
+    }
+    // 여기서는 단순히 화면을 닫고 새 상품을 반환
     Navigator.pop(context, newProduct);
   }
 }

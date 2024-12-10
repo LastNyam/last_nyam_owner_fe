@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Product 클래스가 정의된 파일을 import하세요.
+import 'home_screen.dart';
+
+import 'package:last_nyam_owner/model/product.dart';
 
 class HiddenScreen extends StatefulWidget {
-  final List<Product> products;
+  final List<PostedProduct> products;
 
   const HiddenScreen({Key? key, required this.products}) : super(key: key);
 
@@ -44,8 +46,8 @@ class _HiddenScreenState extends State<HiddenScreen> {
                       for (var index in selectedItems) {
                         // 원본 products 리스트의 정확한 인덱스로 접근
                         final productIndex = productsWithIndex[index].key;
-                        widget.products[productIndex].isHiden =
-                        !widget.products[productIndex].isHiden;
+                        widget.products[productIndex].isHidden =
+                        !widget.products[productIndex].isHidden;
                       }
                       selectedItems.clear();
                     });

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart'; // Product 클래스가 정의된 파일을 정확하게 import하세요.
+import 'package:last_nyam_owner/model/product.dart';
 
 class SoldOutScreen extends StatefulWidget {
-  final List<Product> products;
+  final List<PostedProduct> products;
 
   const SoldOutScreen({Key? key, required this.products}) : super(key: key);
 
