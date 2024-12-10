@@ -193,7 +193,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     String? token = await _storage.read(key: 'authToken');
     try {
       final response = await _dio.patch(
-        '$baseUrl/auth/profile-image',
+        '$baseUrl/store/image',
         data: formData,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -213,9 +213,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     try {
       String? token = await _storage.read(key: 'authToken');
       final baseUrl = dotenv.env['BASE_URL']!;
+      FormData formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(Uint8List(0), filename: "assets/image/profile_image.png"),
+      });
       final response = await _dio.patch(
-        '$baseUrl/auth/profile-image',
-        data: null,
+        '$baseUrl/store/image',
+        data: formData,
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
 

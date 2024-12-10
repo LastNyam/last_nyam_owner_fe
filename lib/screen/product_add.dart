@@ -127,7 +127,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('상품 정보'),
+          const Text('상품 정보', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _pickImage,
@@ -145,8 +145,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
           ),
           const SizedBox(height: 30),
           _buildTextField(_titleController, '상품명'),
-          const SizedBox(height: 50),
-          const Text('설명'),
+          const SizedBox(height: 20),
+          const Text('설명', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           TextField(
             controller: _descriptionController,
@@ -159,6 +159,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
               border: InputBorder.none,
             ),
             style: const TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "카테고리 선택",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: foodCategory,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                items: ['식자재', '완제품']
+                    .map((category) => DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                ))
+                    .toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    foodCategory = newValue; // 선택된 카테고리 저장
+                  });
+                },
+                hint: const Text("카테고리를 선택하세요"),
+              ),
+            ],
           ),
         ],
       ),
@@ -181,7 +210,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('가격'),
+          const Text('가격', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           _buildTextFieldWithPrefix(_priceController, '정가'),
           const SizedBox(height: 10),
@@ -190,7 +219,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('수량'),
+              const Text('수량', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -234,7 +263,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text('상품 마감 시간'),
+        const Text('상품 마감 시간', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         Row(
           children: [
             _buildDropdown(selectedHour, 24, (value) {
@@ -268,7 +297,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('레시피 (선택)'),
+            const Text('레시피 (선택)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             IconButton(
               icon: Icon(_showRecipeInput ? Icons.remove : Icons.add, color: const Color(0xFF417C4E)),
               onPressed: () => setState(() {
